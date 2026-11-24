@@ -1,0 +1,64 @@
+:root {
+  color-scheme: light dark;
+
+  --brand-ink: #0d1729;
+  --brand-route: #0f766e;
+  --brand-signal: #2dd4bf;
+  --brand-insight: #6d5ef8;
+  --brand-canvas: #f2f6f7;
+  --brand-on-ink: #fff;
+  --brand-muted-on-ink: #a6b8c9;
+  --brand-ink-panel: #152337;
+  --brand-ink-border: #34465a;
+  --brand-focus-on-ink: #5eead4;
+
+  --ui-background: light-dark(var(--brand-canvas), #0b1220);
+  --ui-surface: light-dark(#fff, #122036);
+  --ui-text: light-dark(var(--brand-ink), #eaf4f5);
+  --ui-text-muted: light-dark(#45556b, #a6b8c9);
+  --ui-border: light-dark(#dce6e9, #34465a);
+  --ui-control-border: light-dark(#64748b, #60768b);
+  --ui-primary: light-dark(var(--brand-route), var(--brand-signal));
+  --ui-primary-hover: light-dark(#115e59, #5eead4);
+  --ui-on-primary: light-dark(#fff, #0b1220);
+  --ui-link: light-dark(var(--brand-route), var(--brand-signal));
+  --ui-focus: light-dark(var(--brand-route), #5eead4);
+  --ui-positive: light-dark(var(--brand-route), #5eead4);
+  --ui-negative: light-dark(#b42318, #fda29b);
+  --ui-on-negative: light-dark(#fff, #0b1220);
+  --ui-warning: light-dark(#b45309, #fec84b);
+  --ui-info: light-dark(#1d4ed8, #93c5fd);
+  --ui-accent-surface: light-dark(#e6f4f2, #15393c);
+  --ui-warning-surface: light-dark(#fffbeb, #462d15);
+  --ui-negative-surface: light-dark(#fff1f0, #432627);
+  --ui-shadow: 0 16px 40px light-dark(rgb(13 23 41 / 6%), rgb(0 0 0 / 18%));
+  --ui-surface-raised: light-dark(#fff, #162741);
+  --ui-shadow-raised:
+    0 1px 2px light-dark(rgb(13 23 41 / 5%), rgb(0 0 0 / 24%)),
+    0 12px 32px light-dark(rgb(13 23 41 / 8%), rgb(0 0 0 / 18%));
+
+  --ui-radius-sm: 10px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 18px;
+  --ui-font:
+    'Inter Variable', Inter, system-ui, 'Noto Sans',
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'PingFang SC', 'PingFang TC',
+    'Microsoft YaHei', sans-serif;
+  --ui-mono:
+    ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  --ui-series-1: light-dark(var(--brand-route), var(--brand-signal));
+  --ui-series-area: light-dark(rgb(15 118 110 / 18%), rgb(45 212 191 / 23%));
+  --ui-series-2: light-dark(var(--brand-insight), #a5b4fc);
+  --ui-series-3: var(--ui-info);
+  --ui-series-4: var(--ui-warning);
+  --ui-series-5: light-dark(#9d174d, #fda4af);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter/wght.css';
+@import './lib/styles/tokens.css';
+
+@theme inline {
+  --color-canvas: var(--ui-background);
+  --color-surface: var(--ui-surface);
+  --color-surface-raised: var(--ui-surface-raised);
+  --color-muted: var(--ui-text-muted);
+  --color-line: var(--ui-border);
+  --color-control: var(--ui-control-border);
+  --color-primary: var(--ui-primary);
+  --color-primary-hover: var(--ui-primary-hover);
+  --color-on-primary: var(--ui-on-primary);
+  --color-link: var(--ui-link);
+  --color-positive: var(--ui-positive);
+  --color-negative: var(--ui-negative);
+  --color-on-negative: var(--ui-on-negative);
+  --color-warning: var(--ui-warning);
+  --color-info: var(--ui-info);
+  --color-accent-surface: var(--ui-accent-surface);
+  --color-warning-surface: var(--ui-warning-surface);
+  --color-negative-surface: var(--ui-negative-surface);
+}
+
+@layer base {
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background: var(--ui-background);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-synthesis: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ui-focus);
+    outline-offset: 3px;
+  }
+
+  input:not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='hidden'],
+    [type='submit']
+  ),
+  select,
+  textarea {
+    min-block-size: 44px;
+    border-color: var(--ui-control-border);
+    background-color: var(--ui-surface);
+    border-radius: var(--ui-radius-sm);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ui-text-muted);
+  }
+
+  input:is([type='checkbox'], [type='radio']) {
+    accent-color: var(--ui-primary);
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button[type='submit'] {
+    min-block-size: 40px;
+  }
+
+  :where(h1, h2, h3) {
+    text-wrap: balance;
+  }
+
+  :where(button, input, select, textarea) {
+    font: inherit;
+  }
+
+  table,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .workspace-link {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ui-link);
+    font-size: 0.875rem;
+    font-weight: 650;
+    text-underline-offset: 0.2em;
+  }
+
+  .workspace-link:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

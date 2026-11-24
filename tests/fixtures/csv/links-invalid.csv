@@ -1,0 +1,4 @@
+destination_url,slug,domain,redirect_type,expires_at,tags,ios_url,android_url
+not-a-url,seed-csv-invalid-url,short.example.com,302,,,,
+https://example.com/duplicate,seed-shared,short.example.com,302,,,,
+https://example.net/status,seed-csv-invalid-status,short.example.net,303,,,,

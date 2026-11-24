@@ -1,0 +1,958 @@
+openapi: 3.1.0
+info:
+  title: Linkrovia REST API
+  version: 1.0.0
+  description: >-
+    Versioned JSON API for a Linkrovia installation. API keys are issued by
+    the management UI and are shown only once. API responses are locale-neutral.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Links
+    description: Link operations use `links:read` or `links:write` API-key scopes.
+  - name: Analytics
+    description: Analytics operations use the `analytics:read` API-key scope.
+  - name: Domains
+    description: Listing uses `links:read`; custom-domain connection operations require an owner browser session.
+  - name: UTM
+    description: Listing/preview use `links:read`; mutations use `links:write`.
+  - name: Conversions
+    description: Goal reads use `analytics:read`, event ingestion uses `conversions:write`, and goal mutations use `conversions:manage`.
+  - name: Backup
+    description: Backup operations require the owner browser session and CSRF protection.
+paths:
+  /links:
+    get:
+      tags: [Links]
+      summary: List links
+      x-required-scope: 'links:read'
+      parameters:
+        [
+          { $ref: '#/components/parameters/Limit' },
+          { $ref: '#/components/parameters/Cursor' },
+          { name: q, in: query, schema: { type: string, maxLength: 200 } },
+          { name: domain, in: query, schema: { type: string, maxLength: 100 } },
+          { name: tag, in: query, schema: { type: string, maxLength: 50 } },
+          {
+            name: status,
+            in: query,
+            schema: { type: string, enum: [active, inactive] },
+          },
+        ]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/LinkList' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    post:
+      tags: [Links]
+      summary: Create a link
+      x-required-scope: 'links:write'
+      requestBody: { $ref: '#/components/requestBodies/JsonLink' }
+      responses:
+        {
+          '201':
+            {
+              description: Created,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: '#/components/schemas/Link' } },
+                },
+            },
+          '400': { $ref: '#/components/responses/Problem' },
+          '409': { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Links]
+      summary: Get a link
+      x-required-scope: 'links:read'
+      responses:
+        {
+          '200':
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: '#/components/schemas/Link' } },
+                },
+            },
+          '404': { $ref: '#/components/responses/Problem' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    patch:
+      tags: [Links]
+      summary: Update a link
+      x-required-scope: 'links:write'
+      requestBody: { $ref: '#/components/requestBodies/JsonLinkUpdate' }
+      responses:
+        {
+          '200':
+            {
+              description: Updated,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: '#/components/schemas/Link' } },
+                },
+            },
+          '400': { $ref: '#/components/responses/Problem' },
+          '404': { $ref: '#/components/responses/Problem' },
+          '409': { $ref: '#/components/responses/Problem' },
+        }
+    delete:
+      tags: [Links]
+      summary: Soft-delete a link
+      x-required-scope: 'links:write'
+      parameters: [{ $ref: '#/components/parameters/UpdatedAt' }]
+      responses:
+        {
+          '204': { description: Deleted },
+          '400': { $ref: '#/components/responses/Problem' },
+          '404': { $ref: '#/components/responses/Problem' },
+          '409': { $ref: '#/components/responses/Problem' },
+        }
+  /links/import/validate:
+    post:
+      tags: [Links]
+      summary: Validate a CSV import
+      x-required-scope: 'links:write'
+      requestBody:
+        { required: true, content: { text/csv: { schema: { type: string } } } }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/import:
+    post:
+      tags: [Links]
+      summary: Import links from CSV data
+      x-required-scope: 'links:write'
+      requestBody:
+        { required: true, content: { text/csv: { schema: { type: string } } } }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/analytics:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Analytics]
+      summary: Get link analytics
+      x-required-scope: 'analytics:read'
+      parameters:
+        [
+          { $ref: '#/components/parameters/From' },
+          { $ref: '#/components/parameters/To' },
+          { $ref: '#/components/parameters/Range' },
+          { $ref: '#/components/parameters/Granularity' },
+          { $ref: '#/components/parameters/Timezone' },
+          { $ref: '#/components/parameters/Dimension' },
+          { $ref: '#/components/parameters/Filter' },
+          { $ref: '#/components/parameters/CategoryKey' },
+          { $ref: '#/components/parameters/DomainId' },
+          { $ref: '#/components/parameters/RuleId' },
+          { $ref: '#/components/parameters/ClickSource' },
+        ]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Analytics' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/analytics.csv:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Analytics]
+      summary: Export link analytics as CSV
+      x-required-scope: 'analytics:read'
+      parameters:
+        [
+          { $ref: '#/components/parameters/From' },
+          { $ref: '#/components/parameters/To' },
+          { $ref: '#/components/parameters/Range' },
+          { $ref: '#/components/parameters/Granularity' },
+          { $ref: '#/components/parameters/Timezone' },
+          { $ref: '#/components/parameters/Dimension' },
+          { $ref: '#/components/parameters/Filter' },
+          { $ref: '#/components/parameters/CategoryKey' },
+          { $ref: '#/components/parameters/DomainId' },
+          { $ref: '#/components/parameters/RuleId' },
+          { $ref: '#/components/parameters/ClickSource' },
+          { name: bom, in: query, schema: { type: string, enum: ['0', '1'] } },
+        ]
+      responses:
+        {
+          '200':
+            {
+              description: CSV,
+              content: { text/csv: { schema: { type: string } } },
+            },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/protection:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    put:
+      tags: [Links]
+      summary: Configure link protection
+      x-required-scope: 'links:write'
+      requestBody: { $ref: '#/components/requestBodies/JsonProtection' }
+      responses:
+        {
+          '204': { description: Updated },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/qr:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [Links]
+      summary: Ensure the default QR code
+      x-required-scope: 'links:write'
+      responses:
+        {
+          '200':
+            {
+              description: OK,
+              content:
+                {
+                  application/json:
+                    {
+                      schema:
+                        {
+                          type: object,
+                          required: [id],
+                          properties: { id: { type: string } },
+                        },
+                    },
+                },
+            },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/qr.svg:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Links]
+      summary: Get a link QR code as SVG
+      x-required-scope: 'links:read'
+      responses:
+        {
+          '200':
+            {
+              description: SVG,
+              content: { image/svg+xml: { schema: { type: string } } },
+            },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/qr.png:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Links]
+      summary: Get a link QR code as PNG
+      x-required-scope: 'links:read'
+      responses:
+        {
+          '200':
+            {
+              description: PNG,
+              content:
+                { image/png: { schema: { type: string, format: binary } } },
+            },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /links/{id}/simulate:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [Links]
+      summary: Simulate link targeting rules
+      x-required-scope: 'links:read'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /analytics/overview:
+    get:
+      tags: [Analytics]
+      summary: Get account analytics overview
+      x-required-scope: 'analytics:read'
+      parameters:
+        [
+          { $ref: '#/components/parameters/From' },
+          { $ref: '#/components/parameters/To' },
+          { $ref: '#/components/parameters/Range' },
+          { $ref: '#/components/parameters/Granularity' },
+          { $ref: '#/components/parameters/Timezone' },
+          { $ref: '#/components/parameters/Dimension' },
+          { $ref: '#/components/parameters/Filter' },
+          { $ref: '#/components/parameters/CategoryKey' },
+          { $ref: '#/components/parameters/DomainId' },
+          { $ref: '#/components/parameters/RuleId' },
+          { $ref: '#/components/parameters/ClickSource' },
+        ]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Analytics' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains:
+    get:
+      tags: [Domains]
+      summary: List domains
+      x-required-scope: 'links:read'
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    post:
+      tags: [Domains]
+      summary: Add a draft domain
+      x-required-scope: 'domains:write'
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [hostname],
+                      properties:
+                        { hostname: { type: string, format: hostname } },
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          '201': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains/preflight:
+    post:
+      tags: [Domains]
+      summary: Diagnose custom-domain connectivity (owner session)
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains/{id}/connection:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [Domains]
+      summary: Read custom-domain connection status (owner session)
+      security: [{ ownerCookie: [] }]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains/{id}/connect:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [Domains]
+      summary: Start custom-domain verification (owner session)
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/JsonConfirmation' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains/{id}/verify:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [Domains]
+      summary: Verify a custom domain (owner session)
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /domains/{id}/disconnect:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [Domains]
+      summary: Disconnect a custom domain (owner session)
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/JsonConfirmation' }
+      responses:
+        {
+          '204': { description: Disconnected },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /utm/templates:
+    get:
+      tags: [UTM]
+      summary: List UTM templates
+      x-required-scope: 'links:read'
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    post:
+      tags: [UTM]
+      summary: Create a UTM template
+      x-required-scope: 'links:write'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '201': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /utm/templates/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    patch:
+      tags: [UTM]
+      summary: Update a UTM template
+      x-required-scope: 'links:write'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    delete:
+      tags: [UTM]
+      summary: Delete a UTM template
+      x-required-scope: 'links:write'
+      parameters: [{ $ref: '#/components/parameters/UpdatedAt' }]
+      responses:
+        {
+          '204': { description: Deleted },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /utm/preview:
+    post:
+      tags: [UTM]
+      summary: Preview UTM changes
+      x-required-scope: 'links:read'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /conversion-goals:
+    get:
+      tags: [Conversions]
+      summary: List conversion goals
+      x-required-scope: 'analytics:read'
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    post:
+      tags: [Conversions]
+      summary: Create a conversion goal
+      x-required-scope: 'conversions:manage'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '201': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /conversion-goals/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    patch:
+      tags: [Conversions]
+      summary: Update a conversion goal
+      x-required-scope: 'conversions:manage'
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+    delete:
+      tags: [Conversions]
+      summary: Delete a conversion goal
+      x-required-scope: 'conversions:manage'
+      responses:
+        {
+          '204': { description: Deleted },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /conversions/events:
+    post:
+      tags: [Conversions]
+      summary: Record a server-to-server conversion event
+      x-required-scope: 'conversions:write'
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '201': { $ref: '#/components/responses/Json' },
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /conversions/analytics:
+    get:
+      tags: [Conversions]
+      summary: Read conversion analytics
+      x-required-scope: 'analytics:read'
+      parameters:
+        [
+          { $ref: '#/components/parameters/From' },
+          { $ref: '#/components/parameters/To' },
+          { $ref: '#/components/parameters/Timezone' },
+        ]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /backup/export:
+    post:
+      tags: [Backup]
+      summary: Export a versioned configuration backup
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /backup/validate:
+    post:
+      tags: [Backup]
+      summary: Validate a configuration backup
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /backup/restore:
+    post:
+      tags: [Backup]
+      summary: Restore a validated configuration backup
+      security: [{ ownerCookie: [] }]
+      parameters: [{ $ref: '#/components/parameters/Csrf' }]
+      requestBody: { $ref: '#/components/requestBodies/Json' }
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+  /settings/export:
+    get:
+      tags: [Backup]
+      summary: Export non-secret application settings
+      security: [{ ownerCookie: [] }]
+      responses:
+        {
+          '200': { $ref: '#/components/responses/Json' },
+          default: { $ref: '#/components/responses/Problem' },
+        }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Linkrovia API key
+      description: API key with the operation's required scope (for example links:read or analytics:read).
+    ownerCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-linkrovia_session
+      description: Owner browser session. State-changing requests also require X-CSRF-Token and same-origin headers.
+  parameters:
+    Id:
+      {
+        name: id,
+        in: path,
+        required: true,
+        schema: { type: string, pattern: '^[a-z0-9_-]{1,100}$' },
+      }
+    Limit:
+      {
+        name: limit,
+        in: query,
+        schema: { type: integer, minimum: 1, maximum: 100, default: 50 },
+      }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    UpdatedAt:
+      {
+        name: updatedAt,
+        in: query,
+        required: true,
+        schema: { type: integer, minimum: 0 },
+      }
+    From:
+      {
+        name: from,
+        in: query,
+        description: Inclusive first date. Omit when using a range preset.,
+        schema: { type: string, format: date },
+      }
+    To:
+      {
+        name: to,
+        in: query,
+        description: Inclusive last date. Omit when using a range preset.,
+        schema: { type: string, format: date },
+      }
+    Range:
+      {
+        name: range,
+        in: query,
+        description: Use instead of `from` and `to`. The rolling `24h` range returns UTC hourly intervals.,
+        schema: { type: string, enum: [24h, 7d, 30d, 90d, 1y, all] },
+      }
+    Granularity:
+      {
+        name: granularity,
+        in: query,
+        description: Use `hour` with `24h` and `month` with `all`. Other ranges support day,
+        week and month.,
+        schema: { type: string, enum: [hour, day, week, month] },
+      }
+    Timezone:
+      {
+        name: tz,
+        in: query,
+        schema:
+          {
+            type: string,
+            description: IANA timezone; defaults to UTC for API-key calls,
+          },
+      }
+    Dimension:
+      {
+        name: dimension,
+        in: query,
+        schema: { $ref: '#/components/schemas/AnalyticsDimension' },
+      }
+    Filter:
+      {
+        name: filter,
+        in: query,
+        description: Provide with key.,
+        schema: { $ref: '#/components/schemas/AnalyticsDimension' },
+      }
+    CategoryKey:
+      {
+        name: key,
+        in: query,
+        description: Value of the selected filter.,
+        schema: { type: string, maxLength: 255 },
+      }
+    DomainId: { name: domainId, in: query, schema: { type: string } }
+    RuleId: { name: ruleId, in: query, schema: { type: string } }
+    ClickSource:
+      { name: source, in: query, schema: { type: string, enum: [link, qr] } }
+    Csrf:
+      {
+        name: X-CSRF-Token,
+        in: header,
+        required: true,
+        schema: { type: string },
+      }
+    IdempotencyKey:
+      {
+        name: Idempotency-Key,
+        in: header,
+        required: true,
+        schema:
+          { type: string, minLength: 1, maxLength: 128, pattern: '^[ -~]+$' },
+      }
+  requestBodies:
+    Json:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              { schema: { type: object, additionalProperties: true } },
+          },
+      }
+    JsonLink:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              { schema: { $ref: '#/components/schemas/LinkInput' } },
+          },
+      }
+    JsonLinkUpdate:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              { schema: { $ref: '#/components/schemas/LinkUpdate' } },
+          },
+      }
+    JsonProtection:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [mode, updatedAt],
+                    properties:
+                      {
+                        mode: { type: string },
+                        password: { type: string },
+                        updatedAt: { type: integer, minimum: 0 },
+                      },
+                  },
+              },
+          },
+      }
+    JsonConfirmation:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [confirmed],
+                    properties: { confirmed: { const: true } },
+                  },
+              },
+          },
+      }
+  responses:
+    Json:
+      {
+        description: JSON response,
+        content:
+          {
+            application/json:
+              { schema: { type: object, additionalProperties: true } },
+          },
+      }
+    LinkList:
+      {
+        description: Link page,
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [data, hasMore],
+                    properties:
+                      {
+                        data:
+                          {
+                            type: array,
+                            items: { $ref: '#/components/schemas/Link' },
+                          },
+                        nextCursor: { type: [string, 'null'] },
+                        hasMore: { type: boolean },
+                      },
+                  },
+              },
+          },
+      }
+    Analytics:
+      {
+        description: Analytics response,
+        content:
+          {
+            application/json:
+              { schema: { $ref: '#/components/schemas/Analytics' } },
+          },
+      }
+    Problem:
+      {
+        description: RFC 9457 Problem Details,
+        content:
+          {
+            application/problem+json:
+              { schema: { $ref: '#/components/schemas/Problem' } },
+          },
+      }
+  schemas:
+    LinkFields:
+      type: object
+      properties:
+        domainId: { type: string }
+        destinationUrl: { type: string, format: uri, pattern: '^https?://' }
+        slug: { type: [string, 'null'] }
+        title: { type: [string, 'null'], maxLength: 200 }
+        redirectType:
+          { type: integer, enum: [301, 302, 307, 308], default: 302 }
+        isActive: { type: boolean, default: true }
+        startsAt: { type: [integer, 'null'], format: int64 }
+        expiresAt: { type: [integer, 'null'], format: int64 }
+        tags:
+          { type: array, maxItems: 20, items: { type: string, maxLength: 50 } }
+        rules:
+          {
+            type: array,
+            maxItems: 20,
+            items:
+              {
+                type: object,
+                required: [destinationUrl, priority],
+                properties:
+                  {
+                    destinationUrl: { type: string, format: uri },
+                    priority: { type: integer },
+                    isActive: { type: boolean },
+                  },
+              },
+          }
+        utmConfig: { type: [object, 'null'], additionalProperties: true }
+    LinkInput:
+      allOf:
+        [
+          { $ref: '#/components/schemas/LinkFields' },
+          { required: [domainId, destinationUrl] },
+        ]
+    LinkUpdate:
+      allOf:
+        [
+          { $ref: '#/components/schemas/LinkFields' },
+          {
+            required: [updatedAt],
+            properties: { updatedAt: { type: integer, minimum: 0 } },
+          },
+        ]
+    Link:
+      allOf:
+        [
+          { $ref: '#/components/schemas/LinkInput' },
+          {
+            type: object,
+            required: [id, shortUrl, createdAt, updatedAt, rules],
+            properties:
+              {
+                id: { type: string },
+                shortUrl: { type: string, format: uri },
+                createdAt: { type: integer, format: int64 },
+                updatedAt: { type: integer, format: int64 },
+                rules: { type: array },
+              },
+          },
+        ]
+    AnalyticsDimension:
+      type: string
+      enum:
+        [
+          country,
+          region,
+          referrer,
+          device,
+          os,
+          browser,
+          rule,
+          source,
+          traffic,
+          link,
+        ]
+    Analytics:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            from:
+              {
+                anyOf:
+                  [
+                    { type: string, format: date },
+                    { type: string, format: date-time },
+                  ],
+              }
+            to:
+              {
+                anyOf:
+                  [
+                    { type: string, format: date },
+                    { type: string, format: date-time },
+                  ],
+              }
+            timezone: { type: string }
+            granularity: { type: string, enum: [hour, day, week, month] }
+            dateBasis: { type: string, enum: [UTC, local] }
+            source:
+              {
+                type: string,
+                enum:
+                  [
+                    analytics-engine,
+                    daily-rollup,
+                    archive-and-live,
+                    mock,
+                    fixture,
+                  ],
+              }
+            estimated: { type: boolean }
+            completeThrough: { type: [string, 'null'], format: date }
+            gaps: { type: array, items: { type: string, format: date } }
+        totalClicks: { type: [integer, 'null'], minimum: 0 }
+        series:
+          {
+            type: array,
+            items:
+              {
+                type: object,
+                properties:
+                  {
+                    date: { type: string },
+                    clicks: { type: [integer, 'null'] },
+                  },
+              },
+          }
+        dimension: { $ref: '#/components/schemas/AnalyticsDimension' }
+        breakdown:
+          {
+            type: array,
+            items:
+              {
+                type: object,
+                properties:
+                  { key: { type: string }, clicks: { type: integer } },
+              },
+          }
+    Problem:
+      type: object
+      required: [type, title, status, detail, code, requestId, fieldErrors]
+      properties:
+        type: { type: string, format: uri-reference, default: 'about:blank' }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        requestId: { type: string, format: uuid }
+        fieldErrors:
+          {
+            type: object,
+            additionalProperties: { type: array, items: { type: string } },
+          }

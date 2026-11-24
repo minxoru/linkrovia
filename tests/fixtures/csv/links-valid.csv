@@ -1,0 +1,3 @@
+destination_url,slug,domain,redirect_type,expires_at,tags,ios_url,android_url
+https://example.com/campaign,seed-csv-campaign,short.example.com,302,,seed-campaign,https://example.com/ios,https://example.com/android
+"https://example.net/report?fields=name,date",seed-csv-report,short.example.net,307,,seed-demo,,

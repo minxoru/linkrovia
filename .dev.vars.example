@@ -1,0 +1,6 @@
+# Generate a new private random setup token for each installation.
+# Use a password manager (32 to 512 characters), or generate one locally with openssl rand -hex 32.
+SETUP_TOKEN=
+
+# Optional. Configure the public site key and enable protection under Security in Linkrovia.
+TURNSTILE_SECRET_KEY=

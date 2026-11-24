@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="370" height="76" viewBox="0 0 370 76" role="img" aria-label="Linkrovia">
+  <g transform="translate(6,6)">
+    <rect width="64" height="64" rx="16" fill="#0D1729"/>
+    <path d="M18 14 V42 Q18 48 24 48 H47" fill="none" stroke="#FFFFFF" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M34 48 L47 35" fill="none" stroke="#2DD4BF" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="48" cy="34" r="3.8" fill="#2DD4BF"/>
+  </g>
+  <text x="87" y="53" font-family="Inter, 'Noto Sans', sans-serif" font-size="40" font-weight="700" letter-spacing="-1.65" fill="#0D1729">Linkrovia</text>
+</svg>
